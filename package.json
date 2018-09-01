@@ -2,11 +2,46 @@
   "name": "whizz-messanger",
   "version": "1.0.0",
   "description": "control your web server with messenger",
-  "main": "index.js",
+  "main": "node dist/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start-dev": "nodemon --inspect=0.0.0.0:3000 dist/index.js",
+    "build-watch": "npm run build && npm-run-all -p watch start-dev",
+    "build": "npm run build-ts && npm run lint-ts",
+    "build-ts": "tsc",
+    "lint-ts": "tslint -c tslint.json -p tsconfig.lint.json -t stylish --force",
+    "watch": "tsc -w"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.16.0",
+    "@types/jest": "^23.3.1",
+    "@types/node": "^10.9.4",
+    "jest": "^23.5.0",
+    "ts-jest": "^23.1.4",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.11.0",
+    "tslint-config-prettier": "^1.15.0",
+    "tslint-immutable": "^4.7.0",
+    "typescript": "^3.0.3"
+  },
+  "jest": {
+    "automock": false,
+    "setupFiles": [
+      "./setupJest.js"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(js?|ts?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "json"
+    ]
+  }
 }
