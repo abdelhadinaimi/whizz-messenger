@@ -11,6 +11,7 @@
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noImplicitAny": true,
+    "resolveJsonModule": true,
     "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": true,
