@@ -2,7 +2,8 @@
   "compilerOptions": {
     "outDir": "dist",
     "module": "commonjs",
-    "target": "esnext",
+    "esModuleInterop": true,
+    "target": "es6",
     "allowJs": true,
     "rootDir": "src",
     "moduleResolution": "node",
