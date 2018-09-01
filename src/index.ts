@@ -1,5 +1,5 @@
 import bodyParser from 'body-parser';
-import express from "express";
+import express, { Request, Response } from "express";
 
 const app = express();
 
@@ -11,8 +11,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 
 
-app.post('/webhook', (req, res) => {  
- 
+app.get("/", (req,res) => {
+  console.log("Got Home");
+});
+app.post('/webhook', (req : Request, res : Response) => {  
+  console.log("Getting request from", req.ip);
+  
   const body = req.body;
 
   // Checks this is an event from a page subscription
