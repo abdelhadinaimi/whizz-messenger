@@ -4,7 +4,7 @@
   "description": "control your web server with messenger",
   "main": "node dist/index.js",
   "scripts": {
-    "start": "node dist/index.js",
+    "start": "ts-node src/index.ts",
     "start-dev": "nodemon dist/index.js",
     "build-start-dev": "npm run build && npm run start-dev",
     "build": "npm run build-ts && npm run lint-ts",
