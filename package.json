@@ -4,6 +4,7 @@
   "description": "control your web server with messenger",
   "main": "node dist/index.js",
   "scripts": {
+    "start": "node dist/index.js",
     "start-dev": "nodemon --inspect=0.0.0.0:3000 dist/index.js",
     "build-watch": "npm run build && npm-run-all -p watch start-dev",
     "build": "npm run build-ts && npm run lint-ts",
