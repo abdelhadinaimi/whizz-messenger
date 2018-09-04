@@ -10,7 +10,7 @@ export interface IPattern {
  * hello|hi will resolve to /^hello$|^hi$ and test: to
  * the according regex stored in constants
  */
-export const resolvePattern = (pattern: string): RegExp => {
+const resolvePattern = (pattern: string): RegExp => {
   const ePattern = pattern.substring(1, pattern.length - 1); // remove the { }
   let resolvedPatternString = "";
   ePattern.split("|").forEach(e => {
@@ -35,7 +35,7 @@ export const resolvePattern = (pattern: string): RegExp => {
 /**
  * will split the command string and checks for errors
  */
-export const tokenizer = (command: string): Promise<string[]> => {
+const tokenizer = (command: string): Promise<string[]> => {
   return new Promise((resolve,reject) =>{
     if (!command || command === "") {
       reject(new Error(errorMessages.COMMAND_NULL));
@@ -53,7 +53,7 @@ export const tokenizer = (command: string): Promise<string[]> => {
 /**
  * makes an IPattern object from the tokenized command
  */
-export const resolver = (tokens: string[]): Promise<IPattern> => {
+const resolver = (tokens: string[]): Promise<IPattern> => {
   return new Promise((resolve,reject) => {
     const resolvedPattern: IPattern = {
       name: tokens[0],

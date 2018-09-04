@@ -1,4 +1,4 @@
-import { compilePattern, tokenizer } from "../../src/utils/commandCompiler";
+import { compilePattern } from "../../src/utils/commandCompiler";
 import { errorMessages, regex } from "../../src/utils/constants";
 
 describe("commandCompiler", () => {
