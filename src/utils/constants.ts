@@ -11,6 +11,7 @@ export const regex = {
 export const errorMessages = {
   COMMAND_INVALIDE: "command name is invalid",
   COMMAND_NULL: "command is empty or null",
+  PARAM_SYNTAX_ERROR: (param : string) =>  "invalid parameter " + param,
   PATTERN_NOT_DEFINED : (pattern : string) => "the pattern " + pattern + " is not defined",
   SYNTAX_ERROR: "there is a syntax error in the command",
 };

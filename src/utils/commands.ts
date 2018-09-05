@@ -3,7 +3,11 @@ import { errorMessages, regex } from "./constants";
 export interface IPattern {
   name: string;
   opional?: boolean;
-  pattern: IPattern[] | IPattern | RegExp;
+  pattern?: IPattern[] | IPattern | RegExp;
+}
+export interface IParam {
+  name: string;
+  value: string;
 }
 /**
  * Resolves a pattern string to a regex object, for example,
@@ -16,7 +20,9 @@ const resolvePattern = (pattern: string): RegExp => {
   ePattern.split("|").forEach(e => {
     if (e.endsWith(":")) {
       // if it is a parametered pattern name then get it from the regex object in constants
-      const foundDefaultPattern = regex[e.substring(0, e.length - 1).toUpperCase()] as RegExp;
+      const foundDefaultPattern = regex[
+        e.substring(0, e.length - 1).toUpperCase()
+      ] as RegExp;
       if (!foundDefaultPattern) {
         throw new Error(errorMessages.PATTERN_NOT_DEFINED(e));
       }
@@ -26,7 +32,9 @@ const resolvePattern = (pattern: string): RegExp => {
     }
   });
   try {
-    return new RegExp(resolvedPatternString.substring(0,resolvedPatternString.length - 1)); // remove the last |
+    return new RegExp(
+      resolvedPatternString.substring(0, resolvedPatternString.length - 1)
+    ); // remove the last |
   } catch (regexError) {
     throw new Error(errorMessages.SYNTAX_ERROR);
   }
@@ -36,16 +44,16 @@ const resolvePattern = (pattern: string): RegExp => {
  * will split the command string and checks for errors
  */
 const tokenizer = (command: string): Promise<string[]> => {
-  return new Promise((resolve,reject) =>{
+  return new Promise((resolve, reject) => {
     if (!command || command === "") {
       reject(new Error(errorMessages.COMMAND_NULL));
     }
     command = command.trim();
 
-    if(!regex.PATTERN_MATCH.test(command)) {      
+    if (!regex.PATTERN_MATCH.test(command)) {
       reject(new Error(errorMessages.SYNTAX_ERROR));
     }
-    
+
     resolve(command.split(" "));
   });
 };
@@ -54,7 +62,7 @@ const tokenizer = (command: string): Promise<string[]> => {
  * makes an IPattern object from the tokenized command
  */
 const resolver = (tokens: string[]): Promise<IPattern> => {
-  return new Promise((resolve,reject) => {
+  return new Promise((resolve, reject) => {
     const resolvedPattern: IPattern = {
       name: tokens[0],
       pattern: [] as IPattern[]
@@ -68,11 +76,11 @@ const resolver = (tokens: string[]): Promise<IPattern> => {
           e = e.substr(0, e.length - 1);
         }
         const ePattern = { name: e, opional } as IPattern;
-
+        const nextToken = tokens[i + 1];
         // if the token after the command name is a parameter then try to resolve it
-        if (tokens[i + 1] && regex.PATTERN_COMMAND_PARAM.test(tokens[i + 1])) {
+        if (nextToken && regex.PATTERN_COMMAND_PARAM.test(nextToken)) {
           try {
-            ePattern.pattern = resolvePattern(tokens[i + 1]);
+            ePattern.pattern = resolvePattern(nextToken);
           } catch (resolveError) {
             reject(resolveError);
           }
@@ -84,11 +92,41 @@ const resolver = (tokens: string[]): Promise<IPattern> => {
   });
 };
 
-export const compilePattern = (command: string): Promise<IPattern | void> => {
+export const compileCommand = (command: string): Promise<IPattern | void> => {
   return tokenizer(command)
     .then(resolver)
     .catch(error => {
       throw error;
-      // TODO send error back to facebook API
     });
+};
+
+
+export const execCommand = (compiledCommand: IPattern,command: string): Promise<IParam[]> => {
+  return Promise.resolve().then(() => {
+
+    const commands = command.split(" ");
+    const patterns = compiledCommand.pattern as IPattern[];
+    const params: IParam[] = [];
+    let commandIndex = 0;
+
+    patterns.forEach(pattern => {
+      if (!pattern.opional || pattern.name === commands[commandIndex]) {
+        if (commands[commandIndex] !== pattern.name) {
+          throw new Error(errorMessages.SYNTAX_ERROR);
+        }
+        if (pattern.pattern) {
+          const nextCommand = commands[commandIndex + 1];
+          if (!(pattern.pattern as RegExp).test(nextCommand)) {
+            throw new Error(errorMessages.PARAM_SYNTAX_ERROR(nextCommand));
+          }
+          params.push({ name: pattern.name, value: nextCommand });
+          commandIndex += 2;
+        } else {
+          params.push({ name: pattern.name, value: "" });
+          commandIndex++;
+        }
+      }
+    });
+    return params;
+  });
 };
