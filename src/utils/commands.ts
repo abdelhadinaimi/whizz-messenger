@@ -100,15 +100,17 @@ export const compileCommand = (command: string): Promise<IPattern | void> => {
     });
 };
 
-
-export const execCommand = (compiledCommand: IPattern,command: string): Promise<IParam[]> => {
+/**
+ * extracts the parameters from command according to the provided compiled command
+ */
+export const extractParamsFromCommand = (compiledCommand: IPattern,command: string): Promise<IParam[]> => {
   return Promise.resolve().then(() => {
 
     const commands = command.split(" ");
     const patterns = compiledCommand.pattern as IPattern[];
     const params: IParam[] = [];
     let commandIndex = 0;
-
+    // for each pattern in the compiled command check if it matches with the provided command
     patterns.forEach(pattern => {
       if (!pattern.opional || pattern.name === commands[commandIndex]) {
         if (commands[commandIndex] !== pattern.name) {
@@ -119,9 +121,11 @@ export const execCommand = (compiledCommand: IPattern,command: string): Promise<
           if (!(pattern.pattern as RegExp).test(nextCommand)) {
             throw new Error(errorMessages.PARAM_SYNTAX_ERROR(nextCommand));
           }
+          // we have a command with a parameterd pattern, skip the parameter
           params.push({ name: pattern.name, value: nextCommand });
           commandIndex += 2;
         } else {
+          // we have no pattern, skip only the pattern
           params.push({ name: pattern.name, value: "" });
           commandIndex++;
         }
