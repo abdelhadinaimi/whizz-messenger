@@ -1,7 +1,6 @@
 import {
   compileCommand,
-  extractParamsFromCommand,
-  IPattern
+  getParams
 } from "../../src/utils/commands";
 import { errorMessages, regex } from "../../src/utils/constants";
 
@@ -73,62 +72,38 @@ describe("commandCompiler", () => {
     });
   });
 
-  describe("extractParamsFromCommand", () => {
-    const compiledCommand: IPattern = {
-      name: "send",
-      pattern: [
-        { name: "send", pattern: /^sms$|^email$/, opional: false },
-        { name: "for", pattern: regex.NUMBER, opional: true },
-        { name: "in", opional: true }
-      ]
-    };
-
+  describe("getParams", () => {
+  
     it("should return a promise with the the correct parameters", () => {
-      expect(extractParamsFromCommand(compiledCommand, "send sms for 5")).resolves.toEqual([
+      expect(getParams("send sms to 555444888 msg hello")).resolves.toEqual([
         { name: "send", value: "sms" },
-        { name: "for", value: "5" }
-      ]);
-
-      expect(extractParamsFromCommand(compiledCommand, "send email")).resolves.toEqual([
-        { name: "send", value: "email" }
-      ]);
-
-      expect(extractParamsFromCommand(compiledCommand, "send sms")).resolves.toEqual([
-        { name: "send", value: "sms" }
-      ]);
-
-      expect(extractParamsFromCommand(compiledCommand, "send sms in")).resolves.toEqual([
-        { name: "send", value: "sms" },
-        { name: "in", value: "" }
+        { name: "to", value: "555444888" },
+        { name: "msg", value: "hello"}
       ]);
     });
 
     it("should throw PARAM_SYNTAX_ERROR", () => {
-      expect(extractParamsFromCommand(compiledCommand, "send hello")).rejects.toThrowError(
+      expect(getParams("send hello")).rejects.toThrowError(
         errorMessages.PARAM_SYNTAX_ERROR("hello")
       );
-      expect(extractParamsFromCommand(compiledCommand, "send no")).rejects.toThrowError(
+      expect(getParams("send no")).rejects.toThrowError(
         errorMessages.PARAM_SYNTAX_ERROR("no")
       );
-      expect(extractParamsFromCommand(compiledCommand, "send sms for me")).rejects.toThrowError(
-        errorMessages.PARAM_SYNTAX_ERROR("me")
+
+      expect(getParams("hello no")).rejects.toThrowError(
+        errorMessages.COMMAND_INVALIDE
+      );
+      expect(getParams("this command doesn't exist no")).rejects.toThrowError(
+        errorMessages.COMMAND_INVALIDE
       );
 
-      expect(extractParamsFromCommand(compiledCommand, "send for for in")).rejects.toThrowError(
-        errorMessages.PARAM_SYNTAX_ERROR("for")
+      expect(getParams("send sms ki hello msg hello")).rejects.toThrowError(
+        errorMessages.SYNTAX_ERROR
       );
+      expect(getParams("send sms to john@gmail.com mssg hello")).rejects.toThrowError(
+        errorMessages.SYNTAX_ERROR
+      );
+
     });
-
-    // it("should throw PARAM_TOO_FEW_ARGS", () => {
-    //   expect(execCommand(compiledCommand, "send")).rejects.toThrowError(
-    //     errorMessages.PARAM_TOO_FEW_ARGS
-    //   );
-    // });
-
-    // it("should throw PARAM_TOO_MANY_ARGS", () => {
-    //   expect(
-    //     execCommand(compiledCommand, "send sms email")
-    //   ).rejects.toThrowError(errorMessages.PARAM_TOO_MANY_ARGS);
-    // });
   });
 });

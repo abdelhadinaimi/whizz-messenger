@@ -1,4 +1,4 @@
-import { errorMessages, regex } from "./constants";
+import { commands, errorMessages, regex } from "./constants";
 
 export interface IPattern {
   name: string;
@@ -9,6 +9,9 @@ export interface IParam {
   name: string;
   value: string;
 }
+
+
+
 /**
  * Resolves a pattern string to a regex object, for example,
  * hello|hi will resolve to /^hello$|^hi$ and test: to
@@ -50,7 +53,7 @@ const tokenizer = (command: string): Promise<string[]> => {
     }
     command = command.trim();
 
-    if (!regex.PATTERN_MATCH.test(command)) {
+    if (!regex._PATTERN_MATCH.test(command)) {
       reject(new Error(errorMessages.SYNTAX_ERROR));
     }
 
@@ -69,7 +72,7 @@ const resolver = (tokens: string[]): Promise<IPattern> => {
     };
 
     tokens.forEach((e, i) => {
-      if (regex.PATTERN_COMMAND_NAME.test(e)) {
+      if (regex._PATTERN_COMMAND_NAME.test(e)) {
         let opional = false;
         if (e.endsWith("?")) {
           opional = true;
@@ -78,7 +81,7 @@ const resolver = (tokens: string[]): Promise<IPattern> => {
         const ePattern = { name: e, opional } as IPattern;
         const nextToken = tokens[i + 1];
         // if the token after the command name is a parameter then try to resolve it
-        if (nextToken && regex.PATTERN_COMMAND_PARAM.test(nextToken)) {
+        if (nextToken && regex._PATTERN_COMMAND_PARAM.test(nextToken)) {
           try {
             ePattern.pattern = resolvePattern(nextToken);
           } catch (resolveError) {
@@ -103,9 +106,9 @@ export const compileCommand = (command: string): Promise<IPattern | void> => {
 /**
  * extracts the parameters from command according to the provided compiled command
  */
-export const extractParamsFromCommand = (compiledCommand: IPattern,command: string): Promise<IParam[]> => {
+const extractParamsFromCommand = (compiledCommand: IPattern, command: string): Promise<IParam[]> => {
   return Promise.resolve().then(() => {
-
+    // tslint:disable-next-line:no-shadowed-variable
     const commands = command.split(" ");
     const patterns = compiledCommand.pattern as IPattern[];
     const params: IParam[] = [];
@@ -134,3 +137,32 @@ export const extractParamsFromCommand = (compiledCommand: IPattern,command: stri
     return params;
   });
 };
+
+/**
+ * it tries to find the correct compiledCommand and resolves the command, it returns the paramters
+ */
+export const getParams = (command: string): Promise<IParam[]> => {
+  return compiledCommandsPromise
+    .then(compiledCommands => {
+      if (!compiledCommands) {
+        throw new Error(errorMessages.COMMAND_COMPILATION);
+      }
+      const compiledCommand = compiledCommands.find(c => !!c && command.startsWith(c.name));
+      if(!compiledCommand){
+        throw new Error(errorMessages.COMMAND_INVALIDE);
+      }
+      return compiledCommand;
+    })
+    .then(compiledCommand => {
+      return extractParamsFromCommand(compiledCommand, command);
+    })
+    .catch(error =>{
+      throw error;
+    });
+};
+
+export const compiledCommandsPromise = Promise.all(
+  commands.map(command => compileCommand(command))
+).catch(error => {
+  console.error(error);
+});
